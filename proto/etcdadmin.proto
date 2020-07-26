@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package etcdadminpb;
+
+option go_package = ".;etcdadminpb";
+
+service GrpcEtcdAdmin{
+    // Call for private only
+    rpc GrpcManagerEtcd(ManagerEtcdRequest) returns (ManagerEtcdReply) {}
+
+    rpc GrpcAddMember(AddMemberRequest) returns (AddMemberReply) {}
+
+    rpc GrpcListMember(ListMemberRequest) returns (ListMemberReply) {}
+
+    rpc GrpcRemoveMember(RemoveMemberRequest) returns (RemoveMemberReply) {}
+}
+
+enum Retcode {
+    OK = 0;            // ok
+    FAIL = 1;          // fail
+}
+
+enum EtcdCmd {
+    NONE = 0;           // none
+    STOP  = 1;          // stop
+    START = 2;          // start
+    RESTART = 3;        // restart
+}
+
+message ManagerEtcdRequest {
+    message Config  {
+        string key = 1;
+        string value = 2;
+    }
+    EtcdCmd cmd = 1;
+    bool clearwal = 2;
+    repeated Config cfgs = 3;
+}
+
+message ManagerEtcdReply {
+	Retcode errcode = 1;
+    string errmsg = 2;
+}
+
+message AddMemberRequest {
+    message Member {
+        string name = 1;
+        string ip = 2;
+    }
+    Member member = 1;
+}
+
+message AddMemberReply {
+	Retcode errcode = 1;
+    string errmsg = 2;
+}
+
+message ListMemberRequest {
+}
+
+message ListMemberReply {
+    message Member {
+        string name = 1;
+        string ip = 2;
+    }
+	Retcode errcode = 1;
+    string errmsg = 2;
+    repeated Member members = 3;
+}
+
+message RemoveMemberRequest {
+    string name = 1;
+}
+
+message RemoveMemberReply {
+    Retcode errcode = 1;
+    string errmsg = 2;
+}

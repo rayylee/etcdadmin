@@ -1,0 +1,15 @@
+[Unit]
+Description=Etcd admin daemon
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+PIDFile=/var/run/etcdadmind.pid
+ExecStartPre=/bin/rm -f /var/run/etcdadmind.pid
+ExecStart=/usr/bin/etcdadmind
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
