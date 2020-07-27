@@ -169,11 +169,22 @@ func (drv *DriverImpl) ListMember() ([]*pb.ListMemberReply_Member, error) {
 
 func (drv *DriverImpl) RemoveMember(name string) error {
 	var err error
+
 	members, _ := command.MemberList()
 	for _, m := range members {
 		if m.Name == name {
-			id, _ := strconv.ParseUint(m.Id, 10, 64)
-			err = command.MemberRemove(fmt.Sprintf("%x", id))
+
+			// stop etcd if the cluster only contain one member
+			if len(members) == 1 {
+				c := client.New(m.Ipaddr, drv.portGrpc)
+				defer client.Release(c)
+				c.GrpcClientManagerEtcd(map[string]string{}, false, client.EtcdCmdStop)
+			} else {
+				id, _ := strconv.ParseUint(m.Id, 10, 64)
+				err = command.MemberRemove(fmt.Sprintf("%x", id))
+			}
+
+			break
 		}
 	}
 
