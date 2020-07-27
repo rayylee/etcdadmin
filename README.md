@@ -16,11 +16,11 @@ Here is an example `contrib/etcd.service`
 ### How to install
 
 ```bash
-# go get -u github.com/rayylee/etcdadmin/etcdadmind
+# go install github.com/rayylee/etcdadmin/etcdadmind
 # etcdadmind help
 Usage: etcdadmind install | remove | start | stop | status
 
-# go get -u github.com/rayylee/etcdadmin/etcdadminctl
+# go install github.com/rayylee/etcdadmin/etcdadminctl
 # etcdadminctl help
 A simple command line of etcdadminctl.
 
