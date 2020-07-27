@@ -92,18 +92,18 @@ func (drv *DriverImpl) AddMember(m *pb.AddMemberRequest_Member) error {
 		return err
 	}
 
-	// Remote clean etcd.cfg, wal and stop etcd
+	// reset etcd.cfg, remove wal and stop etcd by remote
 	cfgs, _ := etcdcfg.EtcdConfigMapInit()
 	c.GrpcClientManagerEtcd(cfgs, true, client.EtcdCmdStop)
 
+	cfgs["ETCD_NAME"] = m.Name
+	cfgs["ETCD_ADVERTISE_CLIENT_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, clientPort)
+	cfgs["ETCD_INITIAL_ADVERTISE_PEER_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, peerPort)
 	if utils.ContainsString(ips, m.Ip) >= 0 {
-		cfgs["ETCD_NAME"] = m.Name
+		cfgs["ETCD_INITIAL_CLUSTER_STATE"] = "new"
 		cfgs["ETCD_INITIAL_CLUSTER"] = fmt.Sprintf("%s=http://%s:%s", m.Name, m.Ip, peerPort)
 		c.GrpcClientManagerEtcd(cfgs, false, client.EtcdCmdStart)
 	} else {
-		cfgs["ETCD_ADVERTISE_CLIENT_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, clientPort)
-		cfgs["ETCD_INITIAL_ADVERTISE_PEER_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, peerPort)
-		cfgs["ETCD_NAME"] = m.Name
 		cfgs["ETCD_INITIAL_CLUSTER_STATE"] = "existing"
 
 		members, _ := command.MemberList()
@@ -174,11 +174,14 @@ func (drv *DriverImpl) RemoveMember(name string) error {
 	for _, m := range members {
 		if m.Name == name {
 
-			// stop etcd if the cluster only contain one member
+			// stop etcd if the cluster only contains one member
 			if len(members) == 1 {
 				c := client.New(m.Ipaddr, drv.portGrpc)
 				defer client.Release(c)
-				c.GrpcClientManagerEtcd(map[string]string{}, false, client.EtcdCmdStop)
+
+				// reset etcd.cfg, remove wal and stop etcd by remote
+				cfgs, _ := etcdcfg.EtcdConfigMapInit()
+				c.GrpcClientManagerEtcd(cfgs, true, client.EtcdCmdStop)
 			} else {
 				id, _ := strconv.ParseUint(m.Id, 10, 64)
 				err = command.MemberRemove(fmt.Sprintf("%x", id))

@@ -3,7 +3,6 @@ package etcdcfg
 import (
 	"fmt"
 	"github.com/rayylee/etcdadmin/etcdadmind/config"
-	"net"
 	"os"
 	"path/filepath"
 	"sync"
@@ -50,17 +49,11 @@ func EtcdConfigMapInit() (map[string]string, error) {
 	if err != nil {
 		return map[string]string{}, err
 	}
-	addrs, err := net.LookupHost(name)
-	if err != nil {
-		return map[string]string{}, err
-	}
-	advP := fmt.Sprintf("http://%s:%s", addrs[0],
-		cfgServer.Get("ETCD_PEER_PORT"))
 
-	advC := fmt.Sprintf("http://%s:%s", addrs[0],
-		cfgServer.Get("ETCD_CLIENT_PORT"))
-
-	initCluster := fmt.Sprintf("%s=http://%s:%s", name, addrs[0],
+	ip := "127.0.0.1"
+	advP := fmt.Sprintf("http://%s:%s", ip, cfgServer.Get("ETCD_PEER_PORT"))
+	advC := fmt.Sprintf("http://%s:%s", ip, cfgServer.Get("ETCD_CLIENT_PORT"))
+	initCluster := fmt.Sprintf("%s=http://%s:%s", name, ip,
 		cfgServer.Get("ETCD_PEER_PORT"))
 
 	m := map[string]string{
