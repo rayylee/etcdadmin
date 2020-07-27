@@ -3,9 +3,10 @@ package command
 import (
 	"encoding/json"
 	"errors"
-	_ "fmt"
+	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	_ "reflect"
+	"strconv"
 	"strings"
 )
 
@@ -41,7 +42,8 @@ func MemberList() ([]*EtcdMember, error) {
 				member, _ := i.(map[string]interface{})
 
 				name, _ := member["name"].(string)
-				id, _ := member["ID"].(json.Number)
+				idnum, _ := member["ID"].(json.Number)
+				id, _ := strconv.ParseUint(string(idnum), 10, 64)
 
 				urls, _ := member["peerURLs"].([]interface{})
 				// Using the first url: urls[0]
@@ -51,7 +53,7 @@ func MemberList() ([]*EtcdMember, error) {
 				mslice = append(mslice,
 					&EtcdMember{
 						Name:   name,
-						Id:     string(id),
+						Id:     fmt.Sprintf("%x", id),
 						Ipaddr: ip,
 					})
 			}

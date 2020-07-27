@@ -10,7 +10,6 @@ import (
 	"github.com/rayylee/etcdadmin/etcdadmind/server/driver/etcdcfg"
 	"github.com/rayylee/etcdadmin/etcdadmind/utils"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 type DriverInterface interface {
@@ -183,8 +182,7 @@ func (drv *DriverImpl) RemoveMember(name string) error {
 				cfgs, _ := etcdcfg.EtcdConfigMapInit()
 				c.GrpcClientManagerEtcd(cfgs, true, client.EtcdCmdStop)
 			} else {
-				id, _ := strconv.ParseUint(m.Id, 10, 64)
-				err = command.MemberRemove(fmt.Sprintf("%x", id))
+				err = command.MemberRemove(m.Id)
 			}
 
 			break
