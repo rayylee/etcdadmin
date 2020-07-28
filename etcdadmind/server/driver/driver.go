@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"errors"
 	"fmt"
 	"github.com/rayylee/etcdadmin/etcdadmind/config"
 	"github.com/rayylee/etcdadmin/etcdadmind/log"
@@ -31,42 +32,6 @@ type DriverImpl struct {
 	portGrpc string
 }
 
-func resetEtcdConfig() error {
-	etcdCfgFile := config.Init().Get("ETCD_CONF_FILE")
-
-	m, err := etcdcfg.EtcdConfigMapInit()
-
-	if err != nil {
-		return err
-	}
-
-	return etcdcfg.EtcdConfigWrite(etcdCfgFile, m)
-}
-
-func resetEtcd(isStart bool) error {
-	var err error
-
-	// Stop etcd but ignore error
-	command.CmdEtcdctlStop()
-
-	if err := resetEtcdConfig(); err != nil {
-		goto exit
-	}
-
-	if err = etcdcfg.EtcdWalDelete(); err != nil {
-		goto exit
-	}
-
-exit:
-	if isStart == true {
-		er := command.EtcdctlStart()
-		if err == nil {
-			err = er
-		}
-	}
-	return err
-}
-
 func New() *DriverImpl {
 	cfg := config.Init()
 
@@ -88,24 +53,41 @@ func (drv *DriverImpl) AddMember(m *pb.AddMemberRequest_Member) error {
 	drv.logger.Info(fmt.Sprintf("add member: %v %v", m.Name, m.Ip))
 	ips, err := utils.GetHostIP4()
 	if err != nil {
+		drv.logger.Error(fmt.Sprintf("get host ipv4: %v", err))
 		return err
 	}
 
 	// reset etcd.cfg, remove wal and stop etcd by remote
 	cfgs, _ := etcdcfg.EtcdConfigMapInit()
-	c.GrpcClientManagerEtcd(cfgs, true, client.EtcdCmdStop)
+	_, err = c.GrpcClientManagerEtcd(cfgs, true, client.EtcdCmdStop)
+	if err != nil {
+		drv.logger.Error(fmt.Sprintf("remote manage etcd: %v", err))
+		goto exit
+	}
 
 	cfgs["ETCD_NAME"] = m.Name
 	cfgs["ETCD_ADVERTISE_CLIENT_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, clientPort)
 	cfgs["ETCD_INITIAL_ADVERTISE_PEER_URLS"] = fmt.Sprintf("http://%s:%s", m.Ip, peerPort)
+
 	if utils.ContainsString(ips, m.Ip) >= 0 {
 		cfgs["ETCD_INITIAL_CLUSTER_STATE"] = "new"
 		cfgs["ETCD_INITIAL_CLUSTER"] = fmt.Sprintf("%s=http://%s:%s", m.Name, m.Ip, peerPort)
+
 		c.GrpcClientManagerEtcd(cfgs, false, client.EtcdCmdStart)
 	} else {
 		cfgs["ETCD_INITIAL_CLUSTER_STATE"] = "existing"
 
-		members, _ := command.MemberList()
+		members, err := command.MemberList()
+		if err != nil {
+			drv.logger.Error(fmt.Sprintf("get member list: %v", err))
+			goto exit
+		}
+		if len(members) < 1 {
+			err = errors.New("cluster no any member")
+			drv.logger.Error(fmt.Sprintf("get member list: %v", err))
+			goto exit
+		}
+
 		initCluster := ""
 		for _, i := range members {
 			initCluster = fmt.Sprintf("%s%s=http://%s:%s,", initCluster,
@@ -115,12 +97,25 @@ func (drv *DriverImpl) AddMember(m *pb.AddMemberRequest_Member) error {
 		cfgs["ETCD_INITIAL_CLUSTER"] = initCluster
 
 		// Add member to cluster
-		command.MemberAdd(m.Name, m.Ip)
+		err = command.MemberAdd(m.Name, m.Ip)
+		if err != nil {
+			drv.logger.Error(fmt.Sprintf("add member: %v", err))
+			goto exit
+		}
 
-		// Remote writing etcd.cfg and start etcd
-		c.GrpcClientManagerEtcd(cfgs, false, client.EtcdCmdStart)
+		// writing etcd.cfg and start etcd by remote
+		_, err = c.GrpcClientManagerEtcd(cfgs, false, client.EtcdCmdStart)
+		if err != nil {
+			drv.logger.Error(fmt.Sprintf("remote manage etcd: %v", err))
+			// rollback
+			member, er := getMemberByName(m.Name)
+			if er == nil && len(member.Id) > 0 {
+				command.MemberRemove(member.Id)
+			}
+		}
 	}
-	return nil
+exit:
+	return err
 }
 
 func (drv *DriverImpl) ManagerEtcd(cmd pb.EtcdCmd, clearwal bool,
