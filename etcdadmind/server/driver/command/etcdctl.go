@@ -14,6 +14,7 @@ type EtcdMember struct {
 	Name   string
 	Ipaddr string
 	Id     string
+	Status string
 }
 
 func EtcdctlStart() error {
@@ -50,11 +51,18 @@ func MemberList() ([]*EtcdMember, error) {
 				ip := strings.Split(urls[0].(string), "//")[1]
 				ip = strings.Split(ip, ":")[0]
 
+				// reference etcd/etcdctl/ctlv3/command/printer.go
+				status := "started"
+				if len(name) == 0 {
+					status = "unstarted"
+				}
+
 				mslice = append(mslice,
 					&EtcdMember{
 						Name:   name,
 						Id:     fmt.Sprintf("%x", id),
 						Ipaddr: ip,
+						Status: status,
 					})
 			}
 		}
