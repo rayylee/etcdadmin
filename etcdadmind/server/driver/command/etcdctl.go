@@ -17,6 +17,12 @@ type EtcdMember struct {
 	Status string
 }
 
+type EtcdEndpoints struct {
+	Endpoint string
+	Id       string
+	Leader   string
+}
+
 func EtcdctlStart() error {
 	result := CmdEtcdctlStart()
 	if result.err != nil {
@@ -101,4 +107,69 @@ func MemberRemove(id string) error {
 		err = errors.New(result.stderr)
 	}
 	return err
+}
+
+func EndpointsStatus(endpoints string) ([]*EtcdEndpoints, error) {
+	eslice := []*EtcdEndpoints{}
+
+	var err error
+	result := CmdEtcdctlEndpointsStatus(endpoints)
+
+	if len(result.stdout) <= 0 {
+		if result.err != nil {
+			err = result.err
+		}
+		if len(result.stderr) > 0 {
+			err = errors.New(result.stderr)
+		}
+		return eslice, nil
+	}
+
+	j, err := simplejson.NewJson([]byte(result.stdout))
+	if err != nil {
+		return eslice, nil
+	}
+
+	maps, _ := j.Array()
+	for _, element := range maps {
+		ept := &EtcdEndpoints{}
+
+		member, _ := element.(map[string]interface{})
+
+		for key, value := range member {
+			if key == "Endpoint" {
+				// endpoint
+				ept.Endpoint = value.(string)
+
+			} else if key == "Status" {
+				status := value.(map[string]interface{})
+
+				for key2, value2 := range status {
+					if key2 == "header" {
+						header, _ := value2.(map[string]interface{})
+
+						memberidstr :=
+							header["member_id"].(json.Number).String()
+
+						memberid, _ := strconv.ParseUint(memberidstr, 10, 64)
+
+						// member_id
+						ept.Id = fmt.Sprintf("%x", memberid)
+
+					} else if key2 == "leader" {
+						leaderstr := value2.(json.Number).String()
+						leader, _ := strconv.ParseUint(leaderstr, 10, 64)
+
+						// leader
+						ept.Leader = fmt.Sprintf("%x", leader)
+
+					}
+				}
+			}
+		}
+		// append endpoint
+		eslice = append(eslice, ept)
+
+	}
+	return eslice, nil
 }

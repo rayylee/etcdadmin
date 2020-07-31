@@ -97,6 +97,11 @@ func CmdEtcdctlMemberRemove(id string) *CmdResult {
 	return CmdEtcdctl("member", "remove", id)
 }
 
+func CmdEtcdctlEndpointsStatus(endpoints string) *CmdResult {
+	epts := fmt.Sprintf("--endpoints=\"%s\"", endpoints)
+	return CmdEtcdctl("endpoint", "status", "--write-out", "json", epts)
+}
+
 func CmdEtcdctlStat() *CmdResult {
 	env := []string{}
 	name := "systemctl"
