@@ -115,7 +115,7 @@ func memberListCommandFunc(cmd *cobra.Command, args []string) {
 		if err == nil {
 			fmt.Printf("\nMembers:\n")
 			for i := range m {
-				fmt.Printf("name:%s ip:%s\n", i, m[i])
+				fmt.Printf("id:%s ip:%s\n", i, m[i])
 			}
 		}
 	} else {

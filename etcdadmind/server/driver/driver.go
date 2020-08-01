@@ -160,6 +160,7 @@ func (drv *DriverImpl) ListMember() ([]*pb.ListMemberReply_Member, error) {
 	members, _ := command.MemberList()
 	for _, m := range members {
 		memberInfo := &pb.ListMemberReply_Member{
+			Id:   m.Id,
 			Name: m.Name,
 			Ip:   m.Ipaddr,
 		}
