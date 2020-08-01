@@ -60,7 +60,7 @@ The items in the lists are ID, Status, Name, Peer Addrs, Client Addrs, Is Learne
 // NewMemberRemoveCommand returns the cobra command for "member remove".
 func NewMemberRemoveCommand() *cobra.Command {
 	cc := &cobra.Command{
-		Use:   "remove <name>",
+		Use:   "remove <name/id>",
 		Short: "Removes a member from the cluster",
 
 		Run: memberRemoveCommandFunc,
@@ -130,7 +130,7 @@ func memberRemoveCommandFunc(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("Remove member name: %s\n", args[0])
-	name := args[0]
+	id := args[0]
 
 	gf := getGlobalFlags(cmd)
 	fmt.Printf("endpoint: %v\n", gf.Endpoint)
@@ -139,7 +139,7 @@ func memberRemoveCommandFunc(cmd *cobra.Command, args []string) {
 	if len(s) == 2 {
 		c := client.New(s[0], s[1])
 		defer client.Release(c)
-		err := c.GrpcClientRemovemember(name)
+		err := c.GrpcClientRemovemember(id)
 
 		if err != nil {
 			fmt.Printf("%v\n", err)

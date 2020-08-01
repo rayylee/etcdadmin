@@ -13,6 +13,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type EtcdMember struct {
+	Name     string
+	Ipaddr   string
+	Id       string
+	IsLeader string
+	IsHealth string
+}
+
 type DriverInterface interface {
 	// Attempts to add a member into the cluster.
 	AddMember(m *pb.AddMemberRequest_Member) error
@@ -24,7 +32,7 @@ type DriverInterface interface {
 	ListMember() ([]*pb.ListMemberReply_Member, error)
 
 	// Removes a member from the cluster.
-	RemoveMember(name string) error
+	RemoveMember(id string) error
 }
 
 type DriverImpl struct {
@@ -161,12 +169,12 @@ func (drv *DriverImpl) ListMember() ([]*pb.ListMemberReply_Member, error) {
 	return memberList, nil
 }
 
-func (drv *DriverImpl) RemoveMember(name string) error {
+func (drv *DriverImpl) RemoveMember(id string) error {
 	var err error
 
 	members, _ := command.MemberList()
 	for _, m := range members {
-		if m.Name == name {
+		if m.Id == id {
 
 			// stop etcd if the cluster only contains one member
 			if len(members) == 1 {

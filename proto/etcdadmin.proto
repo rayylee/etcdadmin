@@ -13,6 +13,8 @@ service GrpcEtcdAdmin{
     rpc GrpcListMember(ListMemberRequest) returns (ListMemberReply) {}
 
     rpc GrpcRemoveMember(RemoveMemberRequest) returns (RemoveMemberReply) {}
+
+    rpc GrpcRemoveMemberAuto(RemoveMemberAutoRequest) returns (RemoveMemberAutoReply) {}
 }
 
 enum Retcode {
@@ -48,6 +50,7 @@ message AddMemberRequest {
         string ip = 2;
     }
     Member member = 1;
+    bool force = 2;
 }
 
 message AddMemberReply {
@@ -56,12 +59,16 @@ message AddMemberReply {
 }
 
 message ListMemberRequest {
+    bool withstatus = 1;
 }
 
 message ListMemberReply {
     message Member {
         string name = 1;
         string ip = 2;
+        string id = 3;
+        string isleader = 4;
+        string ishealth = 5;
     }
 	Retcode errcode = 1;
     string errmsg = 2;
@@ -69,10 +76,19 @@ message ListMemberReply {
 }
 
 message RemoveMemberRequest {
-    string name = 1;
+    string id = 1;
+    bool force = 2;
 }
 
 message RemoveMemberReply {
+    Retcode errcode = 1;
+    string errmsg = 2;
+}
+
+message RemoveMemberAutoRequest {
+}
+
+message RemoveMemberAutoReply {
     Retcode errcode = 1;
     string errmsg = 2;
 }

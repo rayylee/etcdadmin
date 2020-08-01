@@ -58,7 +58,14 @@ func (imp *ImplEtcdAdminServer) GrpcRemoveMember(
 
 	imp.logger.Info(fmt.Sprintf("call GrpcRemoveMember: %v", req))
 
-	err := imp.drv.RemoveMember(req.Name)
+	err := imp.drv.RemoveMember(req.Id)
 
 	return &pb.RemoveMemberReply{Errcode: pb.Retcode_OK}, err
+}
+
+func (imp *ImplEtcdAdminServer) GrpcRemoveMemberAuto(
+	ctx context.Context,
+	req *pb.RemoveMemberAutoRequest) (*pb.RemoveMemberAutoReply, error) {
+
+	return &pb.RemoveMemberAutoReply{Errcode: pb.Retcode_OK}, nil
 }

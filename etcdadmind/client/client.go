@@ -62,15 +62,15 @@ func (c *GrpcClient) GrpcClientListmember() (map[string]string, error) {
 	}
 
 	for _, member := range r.Members {
-		m[member.Name] = member.Ip
+		m[member.Id] = member.Ip
 	}
 	return m, nil
 }
 
-func (c *GrpcClient) GrpcClientRemovemember(name string) error {
+func (c *GrpcClient) GrpcClientRemovemember(id string) error {
 	r, err := c.caller.GrpcRemoveMember(context.Background(),
 		&pb.RemoveMemberRequest{
-			Name: name,
+			Id: id,
 		})
 
 	if err != nil {
