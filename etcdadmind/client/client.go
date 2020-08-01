@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	pb "github.com/rayylee/etcdadmin/etcdadmind/pb/etcdadminpb"
 	"google.golang.org/grpc"
@@ -91,6 +92,10 @@ func (c *GrpcClient) GrpcClientRemovemember(id string) error {
 	if err != nil {
 		fmt.Printf("%v %v\n", r.Errcode, r.Errmsg)
 		return err
+	}
+
+	if len(r.Errmsg) > 0 {
+		return errors.New(r.Errmsg)
 	}
 
 	return nil

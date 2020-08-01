@@ -8,28 +8,35 @@ import (
 	"time"
 )
 
-func waitMemberHealth(endpoint string, timeout uint) error {
-	// time.Second*timeout second
-	ctx, cancel := context.WithTimeout(context.Background(),
-		time.Second*time.Duration(timeout))
+func waitMemberHealth(endpoint string) error {
+	// etcd/etcdserver/server.go:
+	// healthInterval is the minimum time the cluster should be healthy
+	// before accepting add member requests.
+	//
+	// here is the maximum timeout
+	healthInterval := 5 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), healthInterval)
 	defer cancel()
 
 	var err error
+	c := make(chan int)
 	over := false
-	c := make(chan string)
 	go func() {
 		for over == false {
-			err = command.EndpointsHealth(endpoint)
 			time.Sleep(time.Millisecond * 100)
+			err = command.EndpointsHealth(endpoint)
+			if err == nil {
+				break
+			}
 		}
-		c <- err.Error()
+		c <- 0
 	}()
 
 	select {
 	case <-ctx.Done():
 		over = true
-	case ret := <-c:
-		err = errors.New(ret)
+	case <-c:
+		return nil
 	}
 
 	return err
