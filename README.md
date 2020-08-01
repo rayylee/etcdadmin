@@ -16,16 +16,16 @@ Here is an example `contrib/etcd.service`
 ### How to install
 
 ```bash
-# go get -u github.com/rayylee/etcdadmin/etcdadmind
-# go get -u github.com/rayylee/etcdadmin/etcdadminctl
+# go get github.com/rayylee/etcdadmin/etcdadmin
+# go get github.com/rayylee/etcdadmin/etcdadminctl
 ```
 
 ### How to run
 ```bash
-# etcdadmind install
+# etcdadmin install
 Install Etcd admin service:                 [  OK  ]
 
-# etcdadmind start
+# etcdadmin start
 Starting Etcd admin service:                [  OK  ]
 
 ```
