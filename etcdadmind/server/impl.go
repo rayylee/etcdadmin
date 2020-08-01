@@ -60,7 +60,12 @@ func (imp *ImplEtcdAdminServer) GrpcRemoveMember(
 
 	err := imp.drv.RemoveMember(req.Id)
 
-	return &pb.RemoveMemberReply{Errcode: pb.Retcode_OK}, err
+	if err != nil {
+		errmsg := fmt.Sprintf("%s", err)
+		return &pb.RemoveMemberReply{Errcode: pb.Retcode_FAIL,
+			Errmsg: errmsg}, nil
+	}
+	return &pb.RemoveMemberReply{Errcode: pb.Retcode_OK}, nil
 }
 
 func (imp *ImplEtcdAdminServer) GrpcRemoveMemberAuto(

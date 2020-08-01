@@ -1,4 +1,4 @@
-package main
+package etcdadmind
 
 import (
 	"fmt"
@@ -92,7 +92,7 @@ func run() {
 	server.Init(cfg.Get("GRPC_PORT"))
 }
 
-func main() {
+func Main() {
 	srv, err := daemon.New(serviceName, serviceDescription,
 		daemon.SystemDaemon, serviceDependencies...)
 	if err != nil {

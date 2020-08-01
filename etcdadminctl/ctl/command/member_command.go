@@ -111,11 +111,11 @@ func memberListCommandFunc(cmd *cobra.Command, args []string) {
 	if len(s) == 2 {
 		c := client.New(s[0], s[1])
 		defer client.Release(c)
-		m, err := c.GrpcClientListmember()
+		mslice, err := c.GrpcClientListmember()
 		if err == nil {
 			fmt.Printf("\nMembers:\n")
-			for i := range m {
-				fmt.Printf("id:%s ip:%s\n", i, m[i])
+			for _, m := range mslice {
+				fmt.Printf("name:%s id:%s ip:%s\n", m.Name, m.Id, m.Ip)
 			}
 		}
 	} else {
@@ -129,7 +129,7 @@ func memberRemoveCommandFunc(cmd *cobra.Command, args []string) {
 		ExitWithError(ExitBadArgs, fmt.Errorf("member name is not provided"))
 	}
 
-	fmt.Printf("Remove member name: %s\n", args[0])
+	fmt.Printf("Remove member: %s\n", args[0])
 	id := args[0]
 
 	gf := getGlobalFlags(cmd)
@@ -139,11 +139,21 @@ func memberRemoveCommandFunc(cmd *cobra.Command, args []string) {
 	if len(s) == 2 {
 		c := client.New(s[0], s[1])
 		defer client.Release(c)
-		err := c.GrpcClientRemovemember(id)
 
-		if err != nil {
-			fmt.Printf("%v\n", err)
+		mslice, err := c.GrpcClientListmember()
+		if err == nil {
+			for _, m := range mslice {
+				if m.Name == id || m.Id == id {
+					err = c.GrpcClientRemovemember(m.Id)
+					if err != nil {
+						fmt.Printf("%v\n", err)
+					}
+				}
+			}
+		} else {
+			fmt.Printf("\nNo member found\n")
 		}
+
 	} else {
 		fmt.Printf("error endpoint: %v\n", gf.Endpoint)
 

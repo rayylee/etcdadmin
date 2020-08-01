@@ -7,6 +7,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+type EtcdMember struct {
+	Name     string
+	Ip       string
+	Id       string
+	IsLeader string
+	IsHealth string
+}
+
 type GrpcClient struct {
 	caller pb.GrpcEtcdAdminClient
 	conn   *grpc.ClientConn
@@ -50,21 +58,28 @@ func (c *GrpcClient) GrpcClientAddmember(name string, ip string) {
 	}
 }
 
-func (c *GrpcClient) GrpcClientListmember() (map[string]string, error) {
-	m := make(map[string]string)
+func (c *GrpcClient) GrpcClientListmember() ([]*EtcdMember, error) {
+	mslice := []*EtcdMember{}
 
 	r, err := c.caller.GrpcListMember(context.Background(),
 		&pb.ListMemberRequest{})
 
 	if err != nil {
 		fmt.Printf("%v %v\n", r.Errcode, r.Errmsg)
-		return m, err
+		return mslice, err
 	}
 
 	for _, member := range r.Members {
-		m[member.Id] = member.Ip
+		mslice = append(mslice,
+			&EtcdMember{
+				Id:       member.Id,
+				Name:     member.Name,
+				Ip:       member.Ip,
+				IsLeader: member.Isleader,
+				IsHealth: member.Ishealth,
+			})
 	}
-	return m, nil
+	return mslice, nil
 }
 
 func (c *GrpcClient) GrpcClientRemovemember(id string) error {

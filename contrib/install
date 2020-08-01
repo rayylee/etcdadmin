@@ -10,9 +10,9 @@ if [ x"$1" == x"uninstall" ]; then
         rm -f ${sysdir}/etcdadmind.service
         systemctl daemon-reload
     fi
-    [ -e /usr/bin/etcdadmind ] && rm -f /usr/bin/etcdadmind
+    [ -e /usr/bin/etcdadmin ] && rm -f /usr/bin/etcdadmin
     [ -e /usr/bin/etcdadminctl ] && rm -f /usr/bin/etcdadminctl
-    command -v etcdadmind && which etcdadmind | xargs rm -f || :
+    command -v etcdadmin && which etcdadmin | xargs rm -f || :
     command -v etcdadminctl && which etcdadminctl | xargs rm -f || :
     exit 0
 fi
@@ -41,14 +41,14 @@ if command -v etcdadminctl >/dev/null 2>&1; then
     fi
 fi
 
-# link etcdadmind to /usr/bin/etcdadmind and install etcdadmind.service
-if command -v etcdadmind >/dev/null 2>&1; then
+# link etcdadmin to /usr/bin/etcdadmin and install etcdadmind.service
+if command -v etcdadmin >/dev/null 2>&1; then
     systemctl stop etcdadmind.service >/dev/null 2>&1 || :
 
-    binpath=$(which etcdadmind 2>/dev/null)
+    binpath=$(which etcdadmin 2>/dev/null)
     if [ -n "$binpath" ] && [ -e "$binpath" ]; then
-        if [ x"$binpath" != x"/usr/bin/etcdadmind" ]; then
-            ln -sf $binpath /usr/bin/etcdadmind
+        if [ x"$binpath" != x"/usr/bin/etcdadmin" ]; then
+            ln -sf $binpath /usr/bin/etcdadmin
         fi
         if [ -n "$sysdir" ] && [ -d "$sysdir" ]; then
             install -m 644 etcdadmind.service ${sysdir}/etcdadmind.service
