@@ -29,3 +29,15 @@ func TestGetEndpointsStatus(t *testing.T) {
 		fmt.Printf("Err: %v\n", err)
 	}
 }
+
+func TestGetEndpointsHealth(t *testing.T) {
+	endpoints := "127.0.0.1:2379"
+
+	err := EndpointsHealth(endpoints)
+
+	if err == nil {
+		fmt.Printf("%s health\n", endpoints)
+	} else {
+		fmt.Printf("%s unhealth: %s\n", endpoints, err)
+	}
+}

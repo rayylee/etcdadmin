@@ -102,6 +102,11 @@ func CmdEtcdctlEndpointsStatus(endpoints string) *CmdResult {
 	return CmdEtcdctl("endpoint", "status", "--write-out", "json", epts)
 }
 
+func CmdEtcdctlEndpointsHealth(endpoints string) *CmdResult {
+	epts := fmt.Sprintf("--endpoints=\"%s\"", endpoints)
+	return CmdEtcdctl("endpoint", "health", epts)
+}
+
 func CmdEtcdctlStat() *CmdResult {
 	env := []string{}
 	name := "systemctl"

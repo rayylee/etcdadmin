@@ -173,3 +173,17 @@ func EndpointsStatus(endpoints string) ([]*EtcdEndpoints, error) {
 	}
 	return eslice, nil
 }
+
+func EndpointsHealth(endpoints string) error {
+	var err error
+
+	result := CmdEtcdctlEndpointsHealth(endpoints)
+
+	if result.err != nil {
+		err = result.err
+	}
+	if len(result.stderr) > 0 {
+		err = errors.New(result.stderr)
+	}
+	return err
+}
