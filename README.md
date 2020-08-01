@@ -16,27 +16,8 @@ Here is an example `contrib/etcd.service`
 ### How to install
 
 ```bash
-# go install github.com/rayylee/etcdadmin/etcdadmind
-# etcdadmind help
-Usage: etcdadmind install | remove | start | stop | status
-
-# go install github.com/rayylee/etcdadmin/etcdadminctl
-# etcdadminctl help
-A simple command line of etcdadminctl.
-
-Usage:
-  etcdadminctl [command]
-
-Available Commands:
-  help        Help about any command
-  member      Membership related commands
-  version     Prints the version
-
-Flags:
-      --endpoint string    gRPC endpoints (default "127.0.0.1:2390")
-  -h, --help               help for etcdadminctl
-      --write-out string   Output format (default "json")
-
+# go get -u github.com/rayylee/etcdadmin/etcdadmind
+# go get -u github.com/rayylee/etcdadmin/etcdadminctl
 ```
 
 ### How to run
