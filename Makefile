@@ -1,15 +1,15 @@
 Q ?= @
 
 build: build-pre
-	make -C etcdadmind build
+	go build
 	make -C etcdadminctl build
 
 install: build-pre
-	make -C etcdadmind install
+	go install
 	make -C etcdadminctl install
 
 uninstall:
-	make -C etcdadmind uninstall
+	$Q command -v etcdadmin && which etcdadmin | xargs rm -f || :
 	make -C etcdadminctl uninstall
 
 all: clean install
@@ -23,12 +23,10 @@ uncontrib: uninstall
 	bash build uncontrib
 
 build-pre:
-	mkdir -p etcdadmind/pb/etcdadminpb || :
-	mkdir -p etcdadminctl/pb/etcdadminpb || :
 	bash build build-pre
 
 clean:
 	$Q rm -f etcdadminctl/etcdadminctl || :
-	$Q rm -f etcdadmind/etcdadmind || :
+	$Q rm -f etcdadmin || :
 
 .PHONY: contrib build
