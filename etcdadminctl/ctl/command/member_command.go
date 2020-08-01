@@ -143,13 +143,10 @@ func memberRemoveCommandFunc(cmd *cobra.Command, args []string) {
 		mslice, err := c.GrpcClientListmember()
 		if err == nil {
 			for _, m := range mslice {
-				fmt.Printf("name:%s id:%s ip:%s\n", m.Name, m.Id, m.Ip)
 				if m.Name == id || m.Id == id {
 					err = c.GrpcClientRemovemember(m.Id)
 					if err != nil {
 						fmt.Printf("%v\n", err)
-					} else {
-						fmt.Printf("\nMember %s not found\n", id)
 					}
 				}
 			}
